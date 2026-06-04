@@ -1,0 +1,17 @@
+name: Export Docker Image
+on: workflow_dispatch # 这个配置非常关键，它允许我们在网页上手动点击按钮触发运行
+
+jobs:
+  export-image:
+    runs-on: ubuntu-latest
+    steps:
+    - name: 拉取并打包 Docker 镜像
+      run: |
+        docker pull registry.gitlab.com/gitlab-org/gitlab-runner/gitlab-runner-helper:x86_64-v19.0.1
+        docker save -o gitlab-runner-helper.tar registry.gitlab.com/gitlab-org/gitlab-runner/gitlab-runner-helper:x86_64-v19.0.1
+        
+    - name: 上传为可下载附件
+      uses: actions/upload-artifact@v4
+      with:
+        name: helper-image
+        path: gitlab-runner-helper.tar
