@@ -1,17 +1,26 @@
-name: Export Docker Image
-on: workflow_dispatch # 这个配置非常关键，它允许我们在网页上手动点击按钮触发运行
+name: Export All Pipeline Images
+on: workflow_dispatch 
 
 jobs:
-  export-image:
+  export-images:
     runs-on: ubuntu-latest
     steps:
-    - name: 拉取并打包 Docker 镜像
+    - name: 拉取所有必备镜像
       run: |
-        docker pull registry.gitlab.com/gitlab-org/gitlab-runner/gitlab-runner-helper:x86_64-v19.0.1
-        docker save -o gitlab-runner-helper.tar registry.gitlab.com/gitlab-org/gitlab-runner/gitlab-runner-helper:x86_64-v19.0.1
+        # 1. package 和 deploy 阶段需要的镜像
+        docker pull docker:latest
+        
+        # 2. code-review 阶段需要的镜像
+        docker pull node:24-alpine3.21
+        
+        # 3. build 和 test 阶段需要的镜像
+        docker pull maven:3-jdk-8-alpine
+        
+        # 将它们一次性打包进同一个 tar 文件中！
+        docker save -o all-pipeline-images.tar docker:latest node:24-alpine3.21 maven:3-jdk-8-alpine
         
     - name: 上传为可下载附件
       uses: actions/upload-artifact@v4
       with:
-        name: helper-image
-        path: gitlab-runner-helper.tar
+        name: pipeline-images
+        path: all-pipeline-images.tar
